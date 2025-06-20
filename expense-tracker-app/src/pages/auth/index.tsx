@@ -1,19 +1,34 @@
-import {auth} from '../../firebase/firebase'
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import {useState } from "react";
+import { auth, provider } from "../../firebase/firebase";
+import { signInWithPopup } from "firebase/auth";
+import { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export const Auth = () => {
-    const [email,setEmail] = useState("");
-    const [password,setPassword] = useState("");
-    
-    async function signin(){
-        await createUserWithEmailAndPassword(auth,email,password);
-    }
-    return (
-        <div>
-            <input type="text" placeholder="email" onChange={(e)=>setEmail(e.target.value)}/>
-            <input type="password" placeholder="password" onChange={(e)=>setPassword(e.target.value)}/>
-            <button onClick={signin}>sign in</button>
-        </div>
-    )
-}
+  const navigate = useNavigate();
+
+  //   async function signin() {
+  //     await createUserWithEmailAndPassword(auth, email, password);
+  //   }
+  const signInWithGoogle = async () => {
+    const results = await signInWithPopup(auth, provider);
+    console.log(results);
+    navigate("/expense-tracker");
+  };
+  return (
+    <div>
+      {/* <input
+        type="text"
+        placeholder="email"
+        onChange={(e) => setEmail(e.target.value)}
+      />c 
+      <input
+        type="password"
+        placeholder="password"
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <button onClick={signin}>sign in</button> */}
+      sign in with google to continues
+      <button onClick={signInWithGoogle}>sign in</button>
+    </div>
+  );
+};
