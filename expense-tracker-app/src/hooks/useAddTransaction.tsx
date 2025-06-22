@@ -12,11 +12,7 @@ export const useAddTransaction = () => {
     const transactionCollectionRef  = collection(db, "transactions");
     const {userID} = useGetUserInfo();
 
-    const addTransaction = async ({
-        description,
-        transactionAmount,
-        transactionType
-    }:TransactionData): Promise<void> =>{
+    const addTransaction = async ({description,transactionAmount,transactionType}:TransactionData): Promise<void> =>{
         await addDoc(transactionCollectionRef , {
             userID,
             description,

@@ -1,95 +1,166 @@
 import { auth } from "../../config/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { useState } from "react";
 import { useAddTransaction } from "../../hooks/useAddTransaction";
+import { useGetTransaction } from "../../hooks/useGetTransaction";
+import { useGetUserInfo } from "../../hooks/useGetUserInfo";
+import {useNavigate} from "react-router-dom";
+import "../../index.css";
 
 export const ExpenseTracker = () => {
   const { addTransaction } = useAddTransaction();
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState(0);
-  const [transactionType,setTransactionType] = useState("");
+  const { transactions, transactionTotals} = useGetTransaction();
+  const {name, profilePhoto } = useGetUserInfo();
 
+  const navigate = useNavigate();
+
+  const [description, setDescription] = useState("");
+  const [transactionAmount, setTransactionAmount] = useState(0);
+  const [transactionType,setTransactionType] = useState("expense");
 
   const onsubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Empêche le rechargement de la page
+    e.preventDefault();
     addTransaction({
-        description : description,
-        transactionAmount : amount,
-        transactionType: isExpense ? "expense" : "income"
-  })
-    //let isExpense: Boolean , isIncome: Boolean;
-
-    const form = document.querySelector(".add-transaction") as HTMLFormElement;
-    const historiqueDiv = document.querySelector(".history") as HTMLDivElement;
-    const balanceOutput = document.querySelector(".balance") as HTMLHeadingElement;
-    const incomeOutput = document.querySelector(".income") as HTMLHeadingElement;
-    const expensesOutput = document.querySelector(".expenses") as HTMLHeadingElement;
-
-    const descriptionInput = form.querySelector('#description') as HTMLInputElement;
-    const amountInput = form.querySelector('#amount') as HTMLInputElement;
-    const isExpenseInput = form.querySelector('#expense') as HTMLInputElement | null;
-    const isIncomeInput = form.querySelector('#income') as HTMLInputElement | null;
-
-    const description = descriptionInput.value;
-    const amount = amountInput.value;
-// if (isExpenseInput?.checked) {
-//   const newExpenses = expenses + Number(amount);
-//   setExpenses(newExpenses);
-//   setBalance(income - newExpenses);
-//   isExpense = true;
-//   const newBlance = income - newExpenses;
-//   balanceOutput.textContent = String(newBlance);
-//   expensesOutput.textContent = String(newExpenses);
-// }
-// else if (isIncomeInput?.checked) {
-//   const newIncome = income + Number(amount);
-//   setIncome(newIncome);
-//   setBalance(newIncome - expenses);
-//   isExpense = false;
-//   const newBlance = newIncome - expenses;
-//   balanceOutput.textContent = String(newBlance);
-//   incomeOutput.textContent = String(newIncome);
-// }
-
-
-
-    // const nouvelleEntree = document.createElement("div");
-    // nouvelleEntree.className = "entree";
-    // nouvelleEntree.innerHTML = `<strong>Description :</strong> ${description} <br><strong>Amount :</strong> ${amount} ${isExpense ? "expense" : "income"}`;
-
-    // historiqueDiv.appendChild(nouvelleEntree);
-
-    form.reset(); // Réinitialiser le formulaire
+        description,
+        transactionAmount,
+        transactionType
+    });
+    setDescription("");
+    setTransactionAmount(0);
   };
+
+  const signUserOut = async () => {
+    try {
+      await signOut(auth);
+      localStorage.clear();
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
-    <div className="expense-tracker">
-      <div className="container">
-        <h1>Expense tracker</h1>
-        <div >
-          <h3>Your balance</h3>
-          <h2 className="balance">$0.00</h2>
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-blue-600">Expense Tracker</h1>
+          <div className="flex items-center space-x-4">
+            <div className="text-right">
+              <h2 className="font-semibold">{name}</h2>
+              <button 
+                onClick={signUserOut}
+                className="text-sm text-red-500 hover:text-red-700"
+              >
+                Sign Out
+              </button>
+            </div>
+            <img 
+              src={profilePhoto} 
+              alt="Profile" 
+              className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
+            />
+          </div>
         </div>
-        <div className="summary">
-          <div >
-            <h3>Income</h3>
-            <h2 className="income">$0.00</h2>
+
+        {/* Balance Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+            <h3 className="text-gray-500">Your Balance</h3>
+            <h2 className="text-2xl font-bold">${transactionTotals.balance.toFixed(2)}</h2>
           </div>
-          <div >
-            <h3>Expenses</h3>
-            <h2 className="expenses">$0.00</h2>
+          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
+            <h3 className="text-gray-500">Income</h3>
+            <h2 className="text-2xl font-bold text-green-600">${transactionTotals.income.toFixed(2)}</h2>
           </div>
+          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
+            <h3 className="text-gray-500">Expenses</h3>
+            <h2 className="text-2xl font-bold text-red-600">${transactionTotals.expenses.toFixed(2)}</h2>
+          </div>
+        </div>
+
+        {/* Add Transaction Form */}
+        <form onSubmit={onsubmit} className="bg-white p-6 rounded-lg shadow-md mb-8">
+          <h3 className="text-xl font-semibold mb-4">Add New Transaction</h3>
+          <div className="space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="Description"
+                id="description"
+                value={description}
+                onChange={(e)=>setDescription(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <input
+                type="number"
+                placeholder="Amount"
+                id="amount"
+                value={transactionAmount || ""}
+                onChange={(e)=>setTransactionAmount(Number(e.target.value))}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div className="flex space-x-4">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="expense"
+                  value="expense"
+                  checked={transactionType == "expense"}
+                  onChange={(e)=>setTransactionType(e.target.value)}
+                  className="mr-2"
+                />
+                <label htmlFor="expense" className="text-red-500">Expense</label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="income"
+                  value="income"
+                  checked={transactionType == "income"}
+                  onChange={(e)=>setTransactionType(e.target.value)}
+                  className="mr-2"
+                />
+                <label htmlFor="income" className="text-green-500">Income</label>
+              </div>
+            </div>
+            <button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition duration-200"
+            >
+              Add Transaction
+            </button>
+          </div>
+        </form>
+
+        {/* Transactions List */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-semibold mb-4">Transactions</h3>
+          <ul className="space-y-3">
+            {transactions.map((transaction, index) => {
+              const {description, transactionAmount, transactionType} = transaction;
+              return (
+                <li key={index} className="p-4 border rounded-lg hover:bg-gray-50">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">{description}</h4>
+                    <p className={`font-semibold ${transactionType === "expense" ? "text-red-500" : "text-green-500"}`}>
+                      ${transactionAmount.toFixed(2)} 
+                      <span className={`ml-2 text-xs px-2 py-1 rounded-full ${transactionType === "expense" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+                        {transactionType}
+                      </span>
+                    </p>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
         </div>
       </div>
-      <form onSubmit={onsubmit}  className="add-transaction">
-        <input type="text" placeholder="Description" id="description" onChange={(e)=>setDescription(e.target.value)} required />
-        <input type="text" placeholder="amount" id="amount" onChange={(e)=>setAmount(Number(e.target.value))} required />
-        <input type="radio" id="expense" value="expense" checked={transactionType == "expense"} onChange={(e)=>setTransactionType(e.target.value)}/>
-        <label htmlFor="expense">Expense</label>
-        <input type="radio" id="income" value="income" checked={transactionType == "income"} onChange={(e)=>setTransactionType(e.target.value)}/>
-        <label htmlFor="income">income</label>
-        <button type="submit"> Add transaction</button>
-      </form>
-      <div className="history"></div>
     </div>
   );
 };

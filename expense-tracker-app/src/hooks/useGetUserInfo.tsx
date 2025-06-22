@@ -6,12 +6,17 @@ export const useGetUserInfo = () => {
   let userID = "";
   let isAuth = false;
 
-  if (results) {
-    const parsed = JSON.parse(results);
-    name = parsed.name;
-    profilePhoto = parsed.profilePhoto;
-    userID = parsed.userID;
-    isAuth = parsed.isAuth;
+  try {
+    if (results) {
+      const parsed = JSON.parse(results);
+
+      name = parsed?.name ?? "";
+      profilePhoto = parsed?.profilePhoto ?? "";
+      userID = parsed?.userID ?? "";
+      isAuth = parsed?.isAuth ?? false;
+    }
+  } catch (error) {
+    console.error("Erreur de parsing des infos utilisateur :", error);
   }
 
   return { name, profilePhoto, userID, isAuth };
