@@ -5,6 +5,7 @@ import { useAddTransaction } from "../../hooks/useAddTransaction";
 import { useGetTransaction } from "../../hooks/useGetTransaction";
 import { useGetUserInfo } from "../../hooks/useGetUserInfo";
 import {useNavigate} from "react-router-dom";
+import { AiAnalyzeBudget } from "../../components/AiAnalyzeBudget.tsx";
 import "../../index.css";
 
 export const ExpenseTracker = () => {
@@ -161,6 +162,8 @@ export const ExpenseTracker = () => {
           </ul>
         </div>
       </div>
+      <AiAnalyzeBudget transactions={transactions} />
+
     </div>
   );
 };
