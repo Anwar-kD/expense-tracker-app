@@ -27,5 +27,6 @@ export default defineConfig({
     ),
     "import.meta.env.VITE_FIREBASE_MEASUREMENT_ID":
       JSON.stringify("G-47DFMPYC02"),
+      
   },
 });

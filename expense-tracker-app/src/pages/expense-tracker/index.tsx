@@ -5,8 +5,16 @@ import { useAddTransaction } from "../../hooks/useAddTransaction";
 import { useGetTransaction } from "../../hooks/useGetTransaction";
 import { useGetUserInfo } from "../../hooks/useGetUserInfo";
 import {useNavigate} from "react-router-dom";
-import { AiAnalyzeBudget } from "../../components/AiAnalyzeBudget.tsx";
+import { getAiAnalyzeBudget } from "../../hooks/getAiAnalyzeBudget.tsx";
 import "../../index.css";
+import { AiComponent } from "../../components/AiComponent.tsx";
+
+type Role = "user" | "assistant" | "system";
+
+interface Message {
+  role: Role;
+  content: string;
+}
 
 export const ExpenseTracker = () => {
   const { addTransaction } = useAddTransaction();
@@ -17,7 +25,27 @@ export const ExpenseTracker = () => {
 
   const [description, setDescription] = useState("");
   const [transactionAmount, setTransactionAmount] = useState(0);
-  const [transactionType,setTransactionType] = useState("expense");
+  const [transactionType,setTransactionType] = useState<string>("expense");
+
+  const [aiResult, setAiResult] = useState("");
+  const [userInput, setUserInput ] = useState("");
+  const [chatHistory, setChatHistory] = useState<Message[]>([]);
+
+  const handleAiChat = async () => {
+    if (!userInput.trim()) return;
+
+    const newMessages:Message[] = [...chatHistory, { role: "user", content: userInput }];
+
+    const aiResponse = await getAiAnalyzeBudget(transactions, newMessages);
+
+    if (aiResponse) {
+      setChatHistory([
+        ...newMessages,
+        { role: "assistant", content: aiResponse },
+      ]);
+      setUserInput(""); // reset input
+    }
+  };
 
   const onsubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -161,8 +189,42 @@ export const ExpenseTracker = () => {
             })}
           </ul>
         </div>
-      </div>
-      <AiAnalyzeBudget transactions={transactions} />
+        <div className="my-4">
+          <h2 className="text-xl font-semibold mb-2">Chat avec l'expert comptable</h2>
+          <div className="bg-gray-50 p-4 rounded-lg space-y-2 max-h-80 overflow-y-auto">
+            {chatHistory.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`p-2 rounded-lg ${
+                  msg.role === "user"
+                    ? "bg-blue-100 text-blue-900 text-right"
+                    : "bg-green-100 text-green-900 text-left"
+                }`}
+              >
+                {msg.content}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex mt-2">
+            <input
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder="Pose ta question..."
+              className="flex-1 p-2 border rounded-l-lg"
+            />
+            <button
+              onClick={handleAiChat}
+              className="bg-blue-600 text-white px-4 py-2 rounded-r-lg"
+            >
+              Envoyer
+            </button>
+          </div>
+        </div>
+
+      </div>    
+
 
     </div>
   );
