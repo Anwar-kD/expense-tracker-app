@@ -173,12 +173,13 @@ export const ExpenseTracker = () => {
           <ul className="space-y-3">
             {transactions.map((transaction, index) => {
               const {description, transactionAmount, transactionType} = transaction;
+              const amount = Number(transactionAmount) || 0;
               return (
                 <li key={index} className="p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex justify-between items-center">
                     <h4 className="font-medium">{description}</h4>
                     <p className={`font-semibold ${transactionType === "expense" ? "text-red-500" : "text-green-500"}`}>
-                      ${transactionAmount.toFixed(2)} 
+                      ${amount.toFixed(2)} 
                       <span className={`ml-2 text-xs px-2 py-1 rounded-full ${transactionType === "expense" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
                         {transactionType}
                       </span>
